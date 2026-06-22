@@ -1,0 +1,11 @@
+[project]
+name = "cashier-reports"
+version = "0.1.0"
+description = "Streamlit reporting dashboard for the cashier app"
+requires-python = ">=3.12"
+dependencies = [
+    "pandas==2.2.3",
+    "plotly==5.24.1",
+    "psycopg2-binary==2.9.10",
+    "streamlit==1.41.1",
+]
