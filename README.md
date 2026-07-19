@@ -14,6 +14,23 @@ monthly reporting charts without calling the Django API.
 - Cached aggregate SQL queries to reduce database load.
 - Docker image build support for local and production deployment.
 
+## Project Structure
+
+The app now uses a small `src` layout so each concern has one clear place:
+
+```text
+src/
+├── conf/        # database configuration and query execution
+├── queries/     # split into orders, customers, and menuitems query modules
+├── services/    # split into orders, customers, menuitems, and dashboard loaders
+├── utils/       # date and formatting helpers
+├── views/       # Streamlit rendering functions
+└── main.py      # page composition and top-level app flow
+```
+
+The root `app.py` remains a thin Streamlit entrypoint so existing commands and
+Docker configuration continue to work.
+
 ## Database Access
 
 The app should use a read-only database user.
@@ -56,6 +73,30 @@ The app opens on:
 
 ```text
 http://localhost:8501
+```
+
+## Run Unit Tests
+
+The project uses Python's built-in `unittest` test runner for fast local checks.
+
+```bash
+uv run python -m unittest discover -s tests
+```
+
+## Run Test Coverage
+
+Use the Make target below to run the unit tests inside the already running
+`cashier_reports` application container and print a coverage summary. Coverage
+excludes files under `tests/` and fails if application coverage drops below 95%.
+
+```bash
+make help
+```
+
+To run coverage:
+
+```bash
+make coverage
 ```
 
 ## Run With Docker Compose
