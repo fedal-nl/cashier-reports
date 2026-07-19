@@ -20,6 +20,15 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Build test image
+        run: docker build -t cashier-reports:test .
+
+      - name: Run unit tests with coverage gate
+        run: |
+          docker run --rm cashier-reports:test sh -lc \
+            "uv run --with coverage python -m coverage run --omit='tests/*' -m unittest discover -s tests && \
+            uv run --with coverage python -m coverage report -m --omit='tests/*' --fail-under=95"
+
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
         with:
