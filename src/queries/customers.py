@@ -15,8 +15,8 @@ def fetch_customer_trends(month_start: date, next_month: date) -> pd.DataFrame:
                 created_at::date AS report_date,
                 customer_id
             FROM orders_order
-            WHERE created_at >= %s
-              AND created_at < %s
+            WHERE created_at >= :month_start
+              AND created_at < :next_month
             GROUP BY report_date, customer_id
         ),
         first_orders AS (
@@ -40,7 +40,7 @@ def fetch_customer_trends(month_start: date, next_month: date) -> pd.DataFrame:
         GROUP BY customer_order_days.report_date
         ORDER BY customer_order_days.report_date;
     """
-    return run_query(query, (month_start, next_month))
+    return run_query(query, {"month_start": month_start, "next_month": next_month})
 
 
 def fetch_top_customers(month_start: date, next_month: date) -> pd.DataFrame:
@@ -53,10 +53,10 @@ def fetch_top_customers(month_start: date, next_month: date) -> pd.DataFrame:
         FROM orders_order AS orders
         JOIN orders_customer AS customer
           ON customer.id = orders.customer_id
-        WHERE orders.created_at >= %s
-          AND orders.created_at < %s
+        WHERE orders.created_at >= :month_start
+          AND orders.created_at < :next_month
         GROUP BY customer.id, customer.name
         ORDER BY total_revenue DESC, total_orders DESC, customer_name ASC
         LIMIT 10;
     """
-    return run_query(query, (month_start, next_month))
+    return run_query(query, {"month_start": month_start, "next_month": next_month})

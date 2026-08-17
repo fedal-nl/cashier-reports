@@ -1,11 +1,11 @@
 from __future__ import annotations
 
 import os
+from collections.abc import Mapping
 
 import pandas as pd
-import psycopg2
 import streamlit as st
-from psycopg2.extras import RealDictCursor
+from sqlalchemy import URL, Engine, create_engine, text
 
 
 def get_database_config() -> dict[str, str | int]:
@@ -22,12 +22,40 @@ def get_database_config() -> dict[str, str | int]:
     }
 
 
-@st.cache_data(ttl=300)
-def run_query(query: str, params: tuple[object, ...]) -> pd.DataFrame:
-    """Run a read-only report query and return the result as a DataFrame."""
-    with psycopg2.connect(**get_database_config()) as connection:
-        with connection.cursor(cursor_factory=RealDictCursor) as cursor:
-            cursor.execute(query, params)
-            rows = cursor.fetchall()
+def get_database_url() -> URL:
+    """Build a safely escaped SQLAlchemy URL from the reporting configuration."""
+    config = get_database_config()
+    return URL.create(
+        drivername="postgresql+psycopg2",
+        username=str(config["user"]),
+        password=str(config["password"]),
+        host=str(config["host"]),
+        port=int(config["port"]),
+        database=str(config["dbname"]),
+    )
 
-    return pd.DataFrame(rows)
+
+@st.cache_resource(show_spinner=False)
+def get_engine() -> Engine:
+    """Create one pooled SQLAlchemy Engine for the Streamlit process."""
+    return create_engine(
+        get_database_url(),
+        pool_pre_ping=True,
+        pool_size=int(os.getenv("REPORTS_DB_POOL_SIZE", "5")),
+        max_overflow=int(os.getenv("REPORTS_DB_MAX_OVERFLOW", "5")),
+        pool_recycle=int(os.getenv("REPORTS_DB_POOL_RECYCLE", "1800")),
+        connect_args={
+            "application_name": "cashier-reports",
+            "options": "-c default_transaction_read_only=on",
+        },
+    )
+
+
+@st.cache_data(ttl=300)
+def run_query(
+    query: str,
+    params: Mapping[str, object] | None = None,
+) -> pd.DataFrame:
+    """Execute parameterized SQL through a pooled connection."""
+    with get_engine().connect() as connection:
+        return pd.read_sql_query(text(query), connection, params=dict(params or {}))

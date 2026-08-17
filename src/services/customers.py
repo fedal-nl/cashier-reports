@@ -4,13 +4,18 @@ from datetime import date
 
 import pandas as pd
 
-from src.queries.customers import fetch_customer_trends, fetch_top_customers
+from src.repositories import ReportingRepository, get_reporting_repository
 from src.services._daily_data import merge_daily_data
 
 
-def load_customer_trends(month_start: date, next_month: date) -> pd.DataFrame:
+def load_customer_trends(
+    month_start: date,
+    next_month: date,
+    repository: ReportingRepository | None = None,
+) -> pd.DataFrame:
     """Load customer trends and ensure all days in the month are represented."""
-    data = fetch_customer_trends(month_start, next_month)
+    repository = repository or get_reporting_repository()
+    data = repository.get_customer_trends(month_start, next_month)
     merged = merge_daily_data(
         data,
         month_start,
@@ -22,6 +27,11 @@ def load_customer_trends(month_start: date, next_month: date) -> pd.DataFrame:
     return merged
 
 
-def load_top_customers(month_start: date, next_month: date) -> pd.DataFrame:
+def load_top_customers(
+    month_start: date,
+    next_month: date,
+    repository: ReportingRepository | None = None,
+) -> pd.DataFrame:
     """Load top customers without additional reshaping."""
-    return fetch_top_customers(month_start, next_month)
+    repository = repository or get_reporting_repository()
+    return repository.get_top_customers(month_start, next_month)

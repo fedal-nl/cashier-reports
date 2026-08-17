@@ -6,7 +6,9 @@ import streamlit as st
 
 from src.services.dashboard import load_dashboard_data
 from src.utils.dates import get_current_month_bounds
+from src.views.campaigns import render_campaigns_tab
 from src.views.customers import render_customers_tab
+from src.views.daily_reports import render_daily_reports_tab
 from src.views.layout import apply_rtl_styles, render_metric_row
 from src.views.menu_items import render_menu_items_tab
 from src.views.orders import render_orders_tab
@@ -29,7 +31,7 @@ def main() -> None:
 
     try:
         dashboard_data = load_dashboard_data(month_start, next_month)
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001 - surface database errors in the UI
         st.error("تعذر تحميل بيانات التقارير من قاعدة البيانات.")
         st.exception(exc)
         return
@@ -39,23 +41,30 @@ def main() -> None:
         dashboard_data.customer_trends,
     )
 
-    orders_tab, customers_tab, menu_items_tab = st.tabs([
-        "الطلبات",
-        "العملاء",
-        "أكثر الوجبات طلب",
-    ])
+    selected_section = st.radio(
+        "قسم التقارير",
+        [
+            "التقارير اليومية",
+            "الطلبات",
+            "العملاء",
+            "تقارير الطعام",
+            "الحملات الإعلانية",
+        ],
+        horizontal=True,
+        key="selected_report_section",
+        label_visibility="collapsed",
+    )
 
-    with orders_tab:
+    if selected_section == "التقارير اليومية":
+        render_daily_reports_tab()
+    elif selected_section == "الطلبات":
         render_orders_tab(dashboard_data.order_trends)
-
-    with customers_tab:
+    elif selected_section == "العملاء":
         render_customers_tab(
             dashboard_data.customer_trends,
             dashboard_data.top_customers,
         )
-
-    with menu_items_tab:
-        render_menu_items_tab(
-            dashboard_data.menu_items_by_day,
-            dashboard_data.menu_items_by_month,
-        )
+    elif selected_section == "تقارير الطعام":
+        render_menu_items_tab()
+    else:
+        render_campaigns_tab()
