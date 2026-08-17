@@ -7,7 +7,8 @@ ENV STREAMLIT_SERVER_PORT=8501
 WORKDIR /app
 
 COPY pyproject.toml .
-RUN pip install --no-cache-dir .
+RUN pip install --no-cache-dir uv==0.5.14 \
+    && pip install --no-cache-dir .
 
 COPY . .
 

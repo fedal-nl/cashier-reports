@@ -10,6 +10,8 @@ from src.services.customers import load_customer_trends, load_top_customers
 from src.services.daily_reports import load_active_branches, load_daily_reports
 from src.services.dashboard import load_dashboard_data
 from src.services.menuitems import (
+    load_active_categories,
+    load_menu_item_filter_options,
     load_menu_item_sales,
     load_top_menu_items_by_day,
     load_top_menu_items_by_month,
@@ -19,6 +21,21 @@ from src.services.orders import load_order_trends
 
 
 class ReportServicesTests(unittest.TestCase):
+    def test_load_food_filter_options_return_records(self) -> None:
+        repository = MagicMock()
+        repository.get_menu_item_filter_options.return_value = pd.DataFrame(
+            {"id": [1], "name_ar": ["Meal"]}
+        )
+        repository.get_active_categories.return_value = pd.DataFrame(
+            {"id": [2], "name_ar": ["Food"]}
+        )
+
+        items = load_menu_item_filter_options(repository)
+        categories = load_active_categories(repository)
+
+        self.assertEqual(items, [{"id": 1, "name_ar": "Meal"}])
+        self.assertEqual(categories, [{"id": 2, "name_ar": "Food"}])
+
     def test_load_menu_item_sales_passes_all_filters(self) -> None:
         repository = MagicMock()
         expected = pd.DataFrame({"total_orders": [4], "total_revenue": [100]})
