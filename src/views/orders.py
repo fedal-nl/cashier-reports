@@ -46,13 +46,21 @@ def render_orders_tab(order_trends: pd.DataFrame) -> None:
     table = order_trends.copy()
     table["report_date"] = pd.to_datetime(table["report_date"]).dt.strftime("%Y-%m-%d")
     table["total_revenue"] = table["total_revenue"].map(money)
-    styled_table = table.rename(columns={
-            "report_date": "التاريخ",
-            "total_orders": "الطلبات",
-            "total_revenue": "الإيرادات",
-        }).style.set_properties(**{"text-align": "right"}).set_table_styles([
-            {"selector": "th", "props": [("text-align", "right")]},
-        ])
+    styled_table = (
+        table.rename(
+            columns={
+                "report_date": "التاريخ",
+                "total_orders": "الطلبات",
+                "total_revenue": "الإيرادات",
+            }
+        )
+        .style.set_properties(**{"text-align": "right"})
+        .set_table_styles(
+            [
+                {"selector": "th", "props": [("text-align", "right")]},
+            ]
+        )
+    )
     st.table(
         styled_table,
     )

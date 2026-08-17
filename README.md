@@ -21,8 +21,9 @@ The app now uses a small `src` layout so each concern has one clear place:
 ```text
 src/
 ├── conf/        # database configuration and query execution
-├── queries/     # split into orders, customers, and menuitems query modules
-├── services/    # split into orders, customers, menuitems, and dashboard loaders
+├── queries/     # SQL queries for the current PostgreSQL schema
+├── repositories/# data-source contract, factory, and PostgreSQL adapter
+├── services/    # reporting transformations against the repository contract
 ├── utils/       # date and formatting helpers
 ├── views/       # Streamlit rendering functions
 └── main.py      # page composition and top-level app flow
@@ -43,6 +44,10 @@ REPORTS_DB_USER=cashier_readonly
 REPORTS_DB_PASSWORD=change-this-password
 REPORTS_DB_HOST=db
 REPORTS_DB_PORT=5432
+REPORTS_REPOSITORY=postgres
+REPORTS_DB_POOL_SIZE=5
+REPORTS_DB_MAX_OVERFLOW=5
+REPORTS_DB_POOL_RECYCLE=1800
 ```
 
 The user only needs:
@@ -50,6 +55,15 @@ The user only needs:
 - `CONNECT` on the database
 - `USAGE` on the `public` schema
 - `SELECT` on application tables
+
+`REPORTS_REPOSITORY` selects the data-source adapter and defaults to `postgres`.
+To use the future ETL database, implement the `ReportingRepository` contract,
+register that adapter in `src/repositories/factory.py`, and select it through
+this environment variable. Views and services do not need to change.
+
+Database access uses a process-wide SQLAlchemy connection pool. Connections are
+validated before checkout, recycled after 30 minutes by default, and configured
+as read-only PostgreSQL sessions. The pool settings above are optional.
 
 From the infrastructure repo, you can create or update the local read-only user
 with:

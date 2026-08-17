@@ -20,10 +20,12 @@ def render_customers_tab(
         var_name="customer_type",
         value_name="customers",
     )
-    long_data["customer_type"] = long_data["customer_type"].replace({
-        "new_customers": "عملاء جدد",
-        "existing_customers": "عملاء حاليون",
-    })
+    long_data["customer_type"] = long_data["customer_type"].replace(
+        {
+            "new_customers": "عملاء جدد",
+            "existing_customers": "عملاء حاليون",
+        }
+    )
 
     fig = px.area(
         long_data,
@@ -52,11 +54,13 @@ def render_customers_tab(
     table = top_customers.copy()
     table["total_revenue"] = table["total_revenue"].map(money)
     st.dataframe(
-        table.rename(columns={
-            "customer_name": "العميل",
-            "total_orders": "الطلبات",
-            "total_revenue": "الإيرادات",
-        }),
+        table.rename(
+            columns={
+                "customer_name": "العميل",
+                "total_orders": "الطلبات",
+                "total_revenue": "الإيرادات",
+            }
+        ),
         hide_index=True,
         use_container_width=True,
     )

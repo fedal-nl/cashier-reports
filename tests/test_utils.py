@@ -11,7 +11,9 @@ from src.utils.formatters import money
 
 class DateUtilsTests(unittest.TestCase):
     @patch("src.utils.dates.date")
-    def test_get_current_month_bounds_rolls_to_next_year(self, mock_date: object) -> None:
+    def test_get_current_month_bounds_rolls_to_next_year(
+        self, mock_date: object
+    ) -> None:
         mock_date.today.return_value = date(2026, 12, 15)
 
         month_start, next_month = get_current_month_bounds()
@@ -20,7 +22,9 @@ class DateUtilsTests(unittest.TestCase):
         self.assertEqual(next_month, date(2027, 1, 1))
 
     @patch("src.utils.dates.date")
-    def test_get_current_month_bounds_rolls_to_next_month(self, mock_date: object) -> None:
+    def test_get_current_month_bounds_rolls_to_next_month(
+        self, mock_date: object
+    ) -> None:
         mock_date.today.return_value = date(2026, 7, 15)
 
         month_start, next_month = get_current_month_bounds()
@@ -31,11 +35,14 @@ class DateUtilsTests(unittest.TestCase):
     def test_get_month_days_returns_all_dates_in_range(self) -> None:
         result = get_month_days(date(2026, 7, 1), date(2026, 7, 4))
 
-        self.assertEqual(result["report_date"].tolist(), [
-            date(2026, 7, 1),
-            date(2026, 7, 2),
-            date(2026, 7, 3),
-        ])
+        self.assertEqual(
+            result["report_date"].tolist(),
+            [
+                date(2026, 7, 1),
+                date(2026, 7, 2),
+                date(2026, 7, 3),
+            ],
+        )
 
 
 class FormatterTests(unittest.TestCase):

@@ -15,9 +15,9 @@ def fetch_order_trends(month_start: date, next_month: date) -> pd.DataFrame:
             COUNT(*) AS total_orders,
             COALESCE(SUM(total_price), 0) AS total_revenue
         FROM orders_order
-        WHERE created_at >= %s
-          AND created_at < %s
+        WHERE created_at >= :month_start
+          AND created_at < :next_month
         GROUP BY report_date
         ORDER BY report_date;
     """
-    return run_query(query, (month_start, next_month))
+    return run_query(query, {"month_start": month_start, "next_month": next_month})

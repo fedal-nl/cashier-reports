@@ -36,7 +36,9 @@ def apply_rtl_styles() -> None:
     )
 
 
-def render_metric_row(order_trends: pd.DataFrame, customer_trends: pd.DataFrame) -> None:
+def render_metric_row(
+    order_trends: pd.DataFrame, customer_trends: pd.DataFrame
+) -> None:
     """Render high-level monthly totals above the report tabs."""
     total_orders = int(order_trends["total_orders"].sum())
     total_revenue = order_trends["total_revenue"].sum()

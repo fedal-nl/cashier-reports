@@ -4,13 +4,18 @@ from datetime import date
 
 import pandas as pd
 
-from src.queries.orders import fetch_order_trends
+from src.repositories import ReportingRepository, get_reporting_repository
 from src.services._daily_data import merge_daily_data
 
 
-def load_order_trends(month_start: date, next_month: date) -> pd.DataFrame:
+def load_order_trends(
+    month_start: date,
+    next_month: date,
+    repository: ReportingRepository | None = None,
+) -> pd.DataFrame:
     """Load order trends and ensure all days in the month are represented."""
-    data = fetch_order_trends(month_start, next_month)
+    repository = repository or get_reporting_repository()
+    data = repository.get_order_trends(month_start, next_month)
     merged = merge_daily_data(
         data,
         month_start,
