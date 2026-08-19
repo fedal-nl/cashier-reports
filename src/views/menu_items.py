@@ -14,31 +14,37 @@ from src.services.menuitems import (
     load_top_menu_items_for_period,
 )
 from src.utils.formatters import money
+from src.utils.printing import render_print_button
+from src.utils.tables import render_rtl_table
 
 
-def _render_sales_table(data: pd.DataFrame, *, show_date: bool = False) -> None:
+def _render_sales_table(
+    data: pd.DataFrame,
+    *,
+    show_date: bool = False,
+    print_title: str | None = None,
+) -> None:
     if data.empty:
         st.info("لا توجد وجبات مطابقة.")
         return
 
     table = data.copy()
     table["total_revenue"] = table["total_revenue"].map(money)
-    columns = ["menu_item_name", "category_name", "total_orders", "total_revenue"]
+    columns = ["total_orders", "total_revenue", "menu_item_name", "category_name"]
     if show_date:
         columns.insert(0, "report_date")
-    st.dataframe(
-        table[columns].rename(
-            columns={
-                "report_date": "التاريخ",
-                "menu_item_name": "الوجبة",
-                "category_name": "الفئة",
-                "total_orders": "عدد الطلبات",
-                "total_revenue": "الإيرادات",
-            }
-        ),
-        hide_index=True,
-        use_container_width=True,
+    display_table = table[columns].rename(
+        columns={
+            "report_date": "التاريخ",
+            "menu_item_name": "الوجبة",
+            "category_name": "الفئة",
+            "total_orders": "عدد الطلبات",
+            "total_revenue": "الإيرادات",
+        }
     )
+    if print_title:
+        render_print_button(display_table, title=print_title)
+    render_rtl_table(display_table)
 
 
 def _render_today_report(today: date) -> None:
@@ -137,7 +143,11 @@ def _render_menu_item_search(today: date) -> None:
     orders_col, revenue_col = st.columns(2)
     orders_col.metric("عدد الطلبات", f"{total_orders:,}")
     revenue_col.metric("الإيرادات", money(total_revenue))
-    _render_sales_table(rows, show_date=True)
+    _render_sales_table(
+        rows,
+        show_date=True,
+        print_title=f"مبيعات الوجبات من {date_from} إلى {date_to}",
+    )
 
 
 def _render_weekly_top_ten(today: date) -> None:
@@ -172,18 +182,21 @@ def _render_weekly_top_ten(today: date) -> None:
     )
     chart.update_layout(xaxis_title=None)
     st.plotly_chart(chart, use_container_width=True)
-    st.dataframe(
-        data.rename(
-            columns={
-                "report_date": "التاريخ",
-                "item_rank": "الترتيب",
-                "menu_item_name": "الوجبة",
-                "total_quantity": "الكمية المطلوبة",
-            }
-        ),
-        hide_index=True,
-        use_container_width=True,
+    display_table = data[
+        ["report_date", "total_quantity", "item_rank", "menu_item_name"]
+    ].rename(
+        columns={
+            "report_date": "التاريخ",
+            "total_quantity": "الكمية المطلوبة",
+            "item_rank": "الترتيب",
+            "menu_item_name": "الوجبة",
+        }
     )
+    render_print_button(
+        display_table,
+        title=f"أفضل 10 وجبات من {date_from:%Y-%m-%d} إلى {today:%Y-%m-%d}",
+    )
+    render_rtl_table(display_table)
 
 
 def render_menu_items_tab() -> None:

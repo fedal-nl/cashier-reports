@@ -1,6 +1,9 @@
 name: Build and publish Docker image
 
 on:
+  pull_request:
+    branches:
+      - main
   push:
     branches:
       - main
@@ -10,11 +13,11 @@ env:
   IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/cashier_reports
 
 jobs:
-  docker:
+  build-and-test:
+    name: Build image and run tests
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      packages: write
 
     steps:
       - name: Checkout repository
@@ -28,6 +31,19 @@ jobs:
           docker run --rm cashier-reports:test sh -lc \
             "uv run --with coverage python -m coverage run --omit='tests/*' -m unittest discover -s tests && \
             uv run --with coverage python -m coverage report -m --omit='tests/*' --fail-under=95"
+
+  publish:
+    name: Publish image
+    if: github.event_name != 'pull_request'
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3

@@ -7,6 +7,8 @@ import streamlit as st
 
 from src.services.daily_reports import load_active_branches, load_daily_reports
 from src.utils.formatters import money
+from src.utils.printing import render_print_button
+from src.utils.tables import render_rtl_table
 
 ORDER_STATUS_LABELS = {
     "created": "تم الإنشاء",
@@ -70,6 +72,10 @@ def render_daily_reports_tab() -> None:
                 "كل الحالات" if value is None else ORDER_STATUS_LABELS[value]
             ),
         )
+        button_col.markdown(
+            "<div style='height: 28px'></div>",
+            unsafe_allow_html=True,
+        )
         submitted = button_col.form_submit_button(
             "عرض التقرير", use_container_width=True
         )
@@ -118,28 +124,30 @@ def render_daily_reports_tab() -> None:
     table = rows.copy()
     table["statuses"] = table.apply(_status_summary, axis=1)
     table["total_revenue"] = table["total_revenue"].map(money)
-    st.dataframe(
-        table[
-            [
-                "report_date",
-                "branch_name",
-                "total_orders",
-                "statuses",
-                "total_new_customers_ordered",
-                "total_existing_customers_ordered",
-                "total_revenue",
-            ]
-        ].rename(
-            columns={
-                "report_date": "التاريخ",
-                "branch_name": "الفرع",
-                "total_orders": "إجمالي الطلبات",
-                "statuses": "الحالات",
-                "total_new_customers_ordered": "عملاء جدد",
-                "total_existing_customers_ordered": "عملاء حاليون",
-                "total_revenue": "الإيرادات",
-            }
-        ),
-        hide_index=True,
-        use_container_width=True,
+    display_table = table[
+        [
+            "report_date",
+            "total_orders",
+            "total_revenue",
+            "branch_name",
+            "statuses",
+            "total_new_customers_ordered",
+            "total_existing_customers_ordered",
+        ]
+    ].rename(
+        columns={
+            "report_date": "التاريخ",
+            "branch_name": "الفرع",
+            "total_orders": "إجمالي الطلبات",
+            "statuses": "الحالات",
+            "total_new_customers_ordered": "عملاء جدد",
+            "total_existing_customers_ordered": "عملاء حاليون",
+            "total_revenue": "الإيرادات",
+        }
     )
+    render_print_button(
+        display_table,
+        title=f"التقرير اليومي من {date_from} إلى {date_to}",
+        landscape=True,
+    )
+    render_rtl_table(display_table)
