@@ -5,6 +5,8 @@ import plotly.express as px
 import streamlit as st
 
 from src.utils.formatters import money
+from src.utils.printing import render_print_button
+from src.utils.tables import render_rtl_table
 
 
 def render_orders_tab(order_trends: pd.DataFrame) -> None:
@@ -46,21 +48,12 @@ def render_orders_tab(order_trends: pd.DataFrame) -> None:
     table = order_trends.copy()
     table["report_date"] = pd.to_datetime(table["report_date"]).dt.strftime("%Y-%m-%d")
     table["total_revenue"] = table["total_revenue"].map(money)
-    styled_table = (
-        table.rename(
-            columns={
-                "report_date": "التاريخ",
-                "total_orders": "الطلبات",
-                "total_revenue": "الإيرادات",
-            }
-        )
-        .style.set_properties(**{"text-align": "right"})
-        .set_table_styles(
-            [
-                {"selector": "th", "props": [("text-align", "right")]},
-            ]
-        )
+    display_table = table[["report_date", "total_orders", "total_revenue"]].rename(
+        columns={
+            "report_date": "التاريخ",
+            "total_orders": "إجمالي الطلبات",
+            "total_revenue": "إجمالي الإيرادات",
+        }
     )
-    st.table(
-        styled_table,
-    )
+    render_print_button(display_table, title="تقرير الطلبات والإيرادات")
+    render_rtl_table(display_table)
